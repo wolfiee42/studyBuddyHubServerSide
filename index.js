@@ -27,6 +27,7 @@ const client = new MongoClient(uri, {
 });
 
 const assignmentCollection = client.db("StudyBuddyHub").collection("assignments");
+const submittedAssignmentCollection = client.db("StudyBuddyHub").collection("submittedassignments");
 
 
 
@@ -36,7 +37,7 @@ async function run() {
         app.get('/', (req, res) => {
             res.send('amigos')
         })
-        app.post('/assignments', async (req, res) => {
+        app.post('/assignment', async (req, res) => {
             const assignment = req.body;
             const result = await assignmentCollection.insertOne(assignment)
             res.send(result);
@@ -45,7 +46,9 @@ async function run() {
         app.get('/assignment', async (req, res) => {
             const result = await assignmentCollection.find().toArray();
             res.send(result);
-        })
+        });
+
+
         // app.get('/assignment', async (req, res) => {
         //     if(req.query.diffLevel){
         //         query = {difficultyLevel : req.query.diffLevel}
@@ -54,9 +57,9 @@ async function run() {
         //     res.send(result);
         //     console.log(result);
         // })
-        
 
-        
+
+
         app.get('/assignment/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
@@ -86,10 +89,19 @@ async function run() {
         })
 
 
-            app.post('/submittedAssign', (req, res)=>{
-                const info = req.body;
-                console.log(info);
-            })
+        app.post('/submittedAssign', async (req, res) => {
+            const submittedAssignment = req.body;
+            const result = await submittedAssignmentCollection.insertOne(submittedAssignment)
+            res.send(result);
+        })
+        app.get('/submittedAssign', async (req, res) => {
+            let query = {}
+            if (req.query?.email) {
+                query = { email: req.query.email }
+            }
+            const result = await submittedAssignmentCollection.find(query).toArray();
+            res.send(result)
+        })
 
 
         await client.connect();
