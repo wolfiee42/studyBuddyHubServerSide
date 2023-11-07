@@ -102,6 +102,13 @@ async function run() {
             const result = await submittedAssignmentCollection.find(query).toArray();
             res.send(result)
         })
+        app.delete('/submittedAssign/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const result = await submittedAssignmentCollection.deleteOne(filter);
+            res.send(result);
+            console.log(result);
+        })
 
 
         await client.connect();
