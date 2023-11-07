@@ -54,13 +54,16 @@ async function run() {
         //     res.send(result);
         //     console.log(result);
         // })
+        
 
+        
         app.get('/assignment/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) };
             const result = await assignmentCollection.findOne(filter);
             res.send(result);
         })
+
         app.put('/assignment/:id', async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
@@ -81,6 +84,12 @@ async function run() {
             res.send(result);
             console.log(result);
         })
+
+
+            app.post('/submittedAssign', (req, res)=>{
+                const info = req.body;
+                console.log(info);
+            })
 
 
         await client.connect();
