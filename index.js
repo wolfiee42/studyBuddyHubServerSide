@@ -12,7 +12,9 @@ const port = process.env.PORT || 5000;
 
 app.use(cors({
     origin: [
-        "http://localhost:5173"
+        // "http://localhost:5173"
+        "https://studybuddyhub-1ed5e.web.app",
+        "https://studybuddyhub-1ed5e.firebaseapp.com"
     ],
     credentials: true,
 }));
