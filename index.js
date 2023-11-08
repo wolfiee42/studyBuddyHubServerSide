@@ -43,8 +43,15 @@ async function run() {
             res.send(result);
         })
 
+        app.get('/assignmentcount', async (req, res) => {
+            const count = await assignmentCollection.estimatedDocumentCount();
+            res.send({ assignment: count })
+        })
+
         app.get('/assignment', async (req, res) => {
-            const result = await assignmentCollection.find().toArray();
+            const page = parseInt(req.query.page)
+            const size = parseInt(req.query.size)
+            const result = await assignmentCollection.find().skip(page*size).limit(size).toArray();
             res.send(result);
         });
 
@@ -108,6 +115,20 @@ async function run() {
             const result = await submittedAssignmentCollection.deleteOne(filter);
             res.send(result);
             console.log(result);
+        })
+        app.patch('/submittedAssign/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updatedInfo = req.body;
+            const doc = {
+                $set: {
+                    status: updatedInfo.status,
+                }
+            }
+            console.log(updatedInfo);
+
+            const result = await submittedAssignmentCollection.updateOne(filter, doc);
+            res.send(result);
         })
 
 
