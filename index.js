@@ -1,7 +1,9 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const cookieParser = require('cookie-parser');
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -13,8 +15,27 @@ app.use(cors({
         "http://localhost:5173"
     ],
     credentials: true,
-}))
-app.use(express.json())
+}));
+app.use(express.json());
+app.use(cookieParser());
+
+
+
+const varifyToken = async (req, res, next) => {
+    const token = req.cookies?.token;
+    if (!token) {
+        res.status(401).send({ message: "Not Authprozed" })
+    }
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ message: "unAuthorized" })
+        }
+        req.user = decoded;
+        next();
+    })
+}
+
+
 
 const uri = `mongodb+srv://${process.env.DB_USERNAME}:${process.env.DB_PASSWORD}@cluster001.04aawtx.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -51,7 +72,7 @@ async function run() {
         app.get('/assignment', async (req, res) => {
             const page = parseInt(req.query.page)
             const size = parseInt(req.query.size)
-            const result = await assignmentCollection.find().skip(page*size).limit(size).toArray();
+            const result = await assignmentCollection.find().skip(page * size).limit(size).toArray();
             res.send(result);
         });
 
@@ -74,7 +95,7 @@ async function run() {
             res.send(result);
         })
 
-        app.put('/assignment/:id', async (req, res) => {
+        app.put('/assignment/:id',async (req, res) => {
             const id = req.params.id;
             const query = { _id: new ObjectId(id) };
             const info = req.body;
@@ -129,6 +150,22 @@ async function run() {
 
             const result = await submittedAssignmentCollection.updateOne(filter, doc);
             res.send(result);
+        })
+
+        // jwt
+        app.post('/jwt', async (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "1h" });
+            res
+                .cookie("token", token, {
+                    httpOnly: true,
+                    secure: process.env.NODE_ENV === 'production',
+                    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'strict',
+                })
+                .send({ success: true })
+        })
+        app.post('/logout', async (req, res) => {
+            res.clearCookie("token", { maxAge: 0 }).send({ success: true })
         })
 
 
